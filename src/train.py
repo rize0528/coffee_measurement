@@ -14,7 +14,7 @@ SUPPORTED_MODELS = {
 }
 
 logging.basicConfig(level=logging.DEBUG, format=
-                    '[%(asctime)-15s][%(levelname)s] %(message)s')
+                    '[%(asctime)-15s][%(levelname)s][%(filename)s] %(message)s')
 
 
 def main():
@@ -50,7 +50,9 @@ def main():
     df = pd.concat(loaded_df, axis=0)
     #
     if args.model in SUPPORTED_MODELS['regression']:
-        cmf = RegressionModel()
+        cmf = RegressionModel(df)
+        cmf.train()
+        cmf.dump_model_pickle('../output/reg_demo.pkl')
     elif args.model in SUPPORTED_MODELS['function_approximation']:
         pass
     else:
