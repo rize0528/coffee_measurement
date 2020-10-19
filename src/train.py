@@ -46,6 +46,9 @@ def main():
         # Load csv file
         loaded_df.append(pd.read_csv(args.input))
         logging.info('"{0}" loaded'.format(args.input.lower()))
+    else:
+        logging.warning("Invalid file type. aborted")
+        return 1
     #
     df = pd.concat(loaded_df, axis=0)
     #
@@ -57,7 +60,7 @@ def main():
         pass
     else:
         raise NotImplementedError('Model "{}" are currently not supported.'.format(args.model))
-
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
