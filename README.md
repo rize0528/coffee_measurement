@@ -9,5 +9,6 @@ so for how to install docker, please refer to [Get Docker](https://docs.docker.c
 ## Installation
 (TBA)
 
-## Train the model
-(TBA)
+## Toolsbelt
+
+### Model training
