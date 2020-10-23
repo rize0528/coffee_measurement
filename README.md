@@ -9,6 +9,42 @@ so for how to install docker, please refer to [Get Docker](https://docs.docker.c
 ## Installation
 (TBA)
 
-## Toolsbelt
+## Train the model
+(TBA)
 
-### Model training
+
+
+# Hardware design
+
+## Arduino dependency
+
+1. Matrix Math by Charlie Matlack
+
+## Wemos D1 Mini
+
+Dependency:
+1. Adafruit SSD1306 Wemos Mini OLED
+
+```
+OLED -> Nano
+ SDA -> A4
+ SCL -> A5
+ VCC -> 5V
+ GND -> GND
+```
+
+## Arduino Nano
+
+Dependency:
+1. Adafruit SSD1306 OLED (128x64)
+
+```
+Nano D4 -> 2222A (Base)
+Nano D9 -> Measure
+Nano D10 -> Calibration
+```
+
+
+# License
+
+TBD

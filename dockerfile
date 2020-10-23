@@ -4,9 +4,11 @@ MAINTAINER riz_hsu
 RUN mkdir /opt/makerclub
 RUN mkdir /opt/makerclub/output
 
+RUN pip install -U pandas scikit-learn
+
 COPY src /opt/makerclub/src
 COPY res /opt/makerclub/res
 
 RUN cd /opt/makerclub/src
 
-ENTRYPOINT ["python", "train.py"]
+ENTRYPOINT ["python", "/opt/makerclub/src/train.py"]
