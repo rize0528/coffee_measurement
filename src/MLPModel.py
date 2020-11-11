@@ -38,7 +38,7 @@ class MLPModel(CoffeeMeasureCore):
                eval_data_frame['value'].to_numpy() / 127
         #
         pred = self.model.predict(X)
-        self.report(groundTruth=y, predicted=pred)
+        self.report(groundTruth=y, predicted=pred, ascii_chart_config={'display_width': 80})
 
     def __logic__(self, hyper_params):
         self.data_frame = feature_creation(self.data_frame)
@@ -47,9 +47,9 @@ class MLPModel(CoffeeMeasureCore):
                self.data_frame['value'].to_numpy() / 127
 
         default_parameters = {
-            'hidden_layer_sizes': (100, 50, 25), 'max_iter': 50000,
-            'solver': 'sgd', 'random_state': 5566, 'early_stopping': True,
-            'activation': 'tanh', 'learning_rate': 'invscaling'
+            'hidden_layer_sizes': (40, 10), 'max_iter': 50000,
+            'solver': 'adam', 'random_state': 5566, 'early_stopping': True,
+            'activation': 'tanh', 'learning_rate': 'adaptive'
         }
         default_parameters.update(hyper_params)
 

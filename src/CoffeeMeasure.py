@@ -41,7 +41,8 @@ class CoffeeMeasureCore:
                 _df[col] /= 255
 
     def report(self, groundTruth: Union[np.ndarray, pd.core.frame.DataFrame],
-               predicted: Union[np.ndarray, pd.core.frame.DataFrame]):
+               predicted: Union[np.ndarray, pd.core.frame.DataFrame],
+               ascii_chart_config: dict = {}):
         _pred = predicted.copy() * 128
         _gt = groundTruth.copy() * 128
         error = (predicted - groundTruth) * 128
@@ -51,23 +52,27 @@ class CoffeeMeasureCore:
         self.log.info(' |- Min error: {}'.format(np.min(error)))
         self.log.info(' |- Average error: {}'.format(np.mean(error)))
         self.log.debug(' |- Loss value between ground truth and prediction: {}'.format(error))
-
+        #
         config = {
             'colors': [
                 chart.red,
                 chart.green,
                 chart.blue
             ],
-            'height': 20, 'max': 128
+            'height': 15, 'max': 128,
+            'display_width': 100
         }
+        config.update(ascii_chart_config)
         #
         legend = "+{:=^20}+\n|{:^20}|\n|{:^20}|\n|{:^20}|\n+{:=^20}+" \
             .format('Legend', 'Green: Prediction', 'Red: Ground Truth', 'Blue: Error value', '')
-        out_chart = chart.plot(series=[_gt.tolist(), _pred.tolist(),
-                                       (_pred - _gt).tolist()], cfg=config)
-        self.log.info("\n" + legend)
-        self.log.info("\nKernel type: {:=^20}".format(self.model_name))
-        self.log.info("\n" + out_chart)
+        #
+        _display = config['display_width']
+        #
+        out_chart = chart.plot(series=[_gt.tolist()[:_display], _pred.tolist()[:_display],
+                                       (_pred - _gt).tolist()[:_display]], cfg=config)
+        log_msg = "\nKernel type: {:=^20}".format(self.model_name) + "\n" + legend + "\n" + out_chart
+        self.log.info(log_msg)
 
     def train(self, hyper_params: dict):
         _eval_df = self.raw_data_frame.copy()

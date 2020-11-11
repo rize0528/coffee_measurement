@@ -31,7 +31,7 @@ def main():
     parser.add_argument('-o', '--output', default=os.path.join(SCRIPT_WD, '../output'))
     parser.add_argument('-l', '--log-level', choices=["debug", "info", "warning", "error"],
                         default="info", dest="log_level")
-    parser.add_argument('--hyper-parameters', dest='hyper_parameters', default="{}", help="hyper parameters")
+    parser.add_argument('-p', '--hyper-parameters', dest='hyper_parameters', default="{}", help="hyper parameters")
     args = parser.parse_args()
     #
     log_level = {"debug": 10, "info": 20, "warning": 30, "error": 40}.get(args.log_level)
@@ -44,6 +44,9 @@ def main():
     except Exception as e:
         logging.error("Unable to parse given hyper-parameter string. Program halt...")
         raise str(e)
+
+    # Create output folder if not exist.
+    os.makedirs(os.path.realpath(args.output), exist_ok=True)
 
     #
     loaded_df = []
