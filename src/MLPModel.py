@@ -1,6 +1,6 @@
 import numpy as np
 from CoffeeMeasure import *
-from sklearn.linear_model import LinearRegression
+from sklearn.neural_network import MLPRegressor
 
 
 def feature_creation(data_frame):
@@ -12,18 +12,18 @@ def feature_creation(data_frame):
                       hsv_df.reset_index(drop=True)], axis=1)
 
 
-class RegressionModel(CoffeeMeasureCore):
+class MLPModel(CoffeeMeasureCore):
     essentials = ['rr', 'rb', 'rg', 'rc']
-    model_name = "linear_regression"
+    model_name = "MLP"
 
     def __dump_model__(self):
         if self.model is None:
             self.log.error("Model not available, have you train it?")
             return {}
         return {'model_name': self.model_name,
-                'reg_coef': self.model.coef_.tolist(),
-                'reg_intercept': self.model.intercept_.tolist(),
-                'note': 'y = (X * reg_coef + reg_intercept)*128; where r,g,b/=127, rc/=511'}
+                'reg_coef': self.numpy_array_flattener(self.model.coefs_),
+                'reg_intercept': self.numpy_array_flattener(self.model.intercepts_),
+                'note': 'y = ( Σ((X * mlp_coef[i]) + mlp_intercept[i]))*128; where r,g,b/=127, rc/=511'}
 
     def __evaluate__(self, eval_data_frame):
         if self.model is None:
@@ -45,7 +45,15 @@ class RegressionModel(CoffeeMeasureCore):
         #
         X, y = self.data_frame[['h', 's', 'v', 'rc']].to_numpy(), \
                self.data_frame['value'].to_numpy() / 127
-        self.model = LinearRegression(**hyper_params)
+
+        default_parameters = {
+            'hidden_layer_sizes': (100, 50, 25), 'max_iter': 50000,
+            'solver': 'sgd', 'random_state': 5566, 'early_stopping': True,
+            'activation': 'tanh', 'learning_rate': 'invscaling'
+        }
+        default_parameters.update(hyper_params)
+
+        self.model = MLPRegressor(**default_parameters)
         self.model.fit(X, y)
         #
 

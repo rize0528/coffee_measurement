@@ -1,4 +1,4 @@
-FROM python:3.9.0-slim
+FROM python:3.8.0-slim
 MAINTAINER riz_hsu
 
 RUN mkdir /opt/makerclub
@@ -11,4 +11,4 @@ COPY res /opt/makerclub/res
 
 RUN cd /opt/makerclub/src
 
-ENTRYPOINT ["python", "/opt/makerclub/src/train.py"]
+#ENTRYPOINT ["/usr/local/bin/python", "/opt/makerclub/src/train.py --model regression --input /opt/makerclub/res/"]
