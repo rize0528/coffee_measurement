@@ -4,7 +4,7 @@ using cheap colour sensor to acquire similar measurement value.
 
 ## Requirement 
 To make the project able to cross-platform, all components will be ran in a docker image,
-so for how to install docker, please refer to [Get Docker](https://docs.docker.com/get-docker/).
+for how to install docker, please refer to [Get Docker](https://docs.docker.com/get-docker/).
  
 ## Installation
 (TBA)
