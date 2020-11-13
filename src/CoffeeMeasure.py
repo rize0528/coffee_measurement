@@ -51,6 +51,7 @@ class CoffeeMeasureCore:
         self.log.info(' |- Max error: {}'.format(np.max(error)))
         self.log.info(' |- Min error: {}'.format(np.min(error)))
         self.log.info(' |- Average error: {}'.format(np.mean(error)))
+        self.log.info(' |- Average absolute error: {}'.format(np.mean(np.abs(error))))
         self.log.debug(' |- Loss value between ground truth and prediction: {}'.format(error))
         #
         config = {
@@ -74,10 +75,12 @@ class CoffeeMeasureCore:
         log_msg = "\nKernel type: {:=^20}".format(self.model_name) + "\n" + legend + "\n" + out_chart
         self.log.info(log_msg)
 
-    def train(self, hyper_params: dict):
-        _eval_df = self.raw_data_frame.copy()
+    def train(self, eval_df: pd.DataFrame = None,  hyper_params: dict = {}):
+        if eval_df is None:
+            self.log.info("No available evaluation data could adopt, use training data instead.")
+            eval_df = self.raw_data_frame.copy()
         self.__logic__(hyper_params)
-        self.__evaluate__(_eval_df)
+        self.__evaluate__(eval_df)
 
     def numpy_array_flattener(self, array: Union[list, np.ndarray]):
         if isinstance(array, np.ndarray):
