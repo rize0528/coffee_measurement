@@ -18,7 +18,8 @@ for how to install docker, please refer to [Get Docker](https://docs.docker.com/
 
 ## Arduino dependency
 
-1. Matrix Math by Charlie Matlack
+1. Matrix Math by Charlie Matlack, if you use MLP model.
+   You don't need Matrix Math for linear regression model.
 
 ## Wemos D1 Mini
 
@@ -36,7 +37,7 @@ OLED -> Nano
 ## Arduino Nano
 
 Dependency:
-1. Adafruit SSD1306 OLED (128x64)
+1. https://github.com/greiman/SSD1306Ascii in order to reduce memory footprint.
 
 ```
 Nano D4 -> 2222A (Base)
