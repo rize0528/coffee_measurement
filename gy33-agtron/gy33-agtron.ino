@@ -58,6 +58,11 @@ Adafruit_SSD1306 display(0);  // GPIO 0
 // 0 = Agtron + Name
 // 1 = rr / rg / rb / rc / Agtron
 short DISPLAY_MODE = 0;
+bool calibrated = false;
+int lastState = HIGH;
+int currentState;
+unsigned int pressedCycles = 0;
+
 
 double fract(double x)
 {
@@ -81,8 +86,6 @@ double tanh(double x)
 
   return ((x0 - x1) / (x0 + x1));
 }
-
-bool calibrated = false;
 
 void flushSerial() {
   Serial.flush();
@@ -230,6 +233,18 @@ double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned in
 }
 #endif  // MLP
 
+const __FlashStringHelper *get_agtron_label(double t) {
+  if (t >= 90) return F("Extremely Light");
+  if (t >= 80) return F("Very Light");
+  if (t >= 70) return F("Light");
+  if (t >= 60) return F("Medium Light");
+  if (t >= 50) return F("Medium");
+  if (t >= 40) return F("Moderately Dark");
+  if (t >= 30) return F("Dark");
+  if (t >= 25) return F("Very Dark");
+  return F("Extremely Dark");
+}
+
 void measure_it() {
   unsigned int r, g, b, c;
   double t;
@@ -243,17 +258,18 @@ void measure_it() {
   delay(3000);          // wait until LED is stable
   if (readTCS34725(&r, &g, &b, &c) == 0) {
     clearScreen();
-    display.print(F("r = "));
-    display.println(r);
-    display.print(F("g = "));
-    display.println(g);
-    display.print(F("b = "));
-    display.println(b);
-    display.print(F("c = "));
-    display.println(c);
     t = calcAgtron(r, g, b, c);
-    display.print(F("t = "));
-    display.print(t);
+    if (DISPLAY_MODE == 0) {
+      display.print(F("Agtron = "));
+      display.println(t);
+      display.println(get_agtron_label(t));
+    } else {
+      display.print(F("r = ")); display.println(r);
+      display.print(F("g = ")); display.println(g);
+      display.print(F("b = ")); display.println(b);
+      display.print(F("c = ")); display.println(c);
+      display.print(F("Agtron = ")); display.println(t);
+    }
     displayScreen();
   }
   delay(1000);
@@ -298,6 +314,7 @@ void setup() {
   display.setTextColor(WHITE);
   display.setCursor(0, 0);
 #endif
+  display.println(F("Trend Micro"));
   display.println(F("Maker Club"));
   display.println(F("Agtron Measurement"));
   display.println(F("v0.1"));
@@ -312,11 +329,30 @@ void setup() {
 
 
 void loop() {
+  currentState = digitalRead(CALIBRA_BTN);
+  if (lastState == LOW && currentState == LOW) {
+    pressedCycles++;
+  }
+
   if (calibrated == true && digitalRead(MEASURE_BTN) == LOW) {
     measure_it();
-  } else if (digitalRead(CALIBRA_BTN) == LOW) {
+  } else if (pressedCycles > 2 && currentState == HIGH) {
     calibrate();
+  } else if (pressedCycles >= 30) {  // 2 seconds
+    DISPLAY_MODE = 1 - DISPLAY_MODE;
+    clearScreen();
+    if (DISPLAY_MODE == 0) {
+      display.println(F("Display: Normal"));
+    } else {
+      display.println(F("Display: Raw data"));
+    }
+    displayScreen();
+    pressedCycles = 0;
+    delay(500);
   }
+
+  if (currentState == HIGH)
+    pressedCycles = 0;
 
   if (calibrated == false) {
     clearScreen();
@@ -325,4 +361,5 @@ void loop() {
     delay(500);
   }
   delay(100);
+  lastState = currentState;
 }
