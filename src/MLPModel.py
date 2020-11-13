@@ -47,7 +47,7 @@ class MLPModel(CoffeeMeasureCore):
                self.data_frame['value'].to_numpy() / 127
 
         default_parameters = {
-            'hidden_layer_sizes': (40, 10), 'max_iter': 50000,
+            'hidden_layer_sizes': (20, 10, 5), 'max_iter': 50000,
             'solver': 'adam', 'random_state': 5566, 'early_stopping': True,
             'activation': 'tanh', 'learning_rate': 'adaptive'
         }

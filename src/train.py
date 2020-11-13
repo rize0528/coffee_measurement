@@ -9,11 +9,11 @@ from RegressionModel import *
 from MLPModel import *
 
 SCRIPT_WD = os.path.dirname(os.path.realpath(__file__))
-DEFAULT_TRAINING_DATA = os.path.join(SCRIPT_WD, "../res/default_training.csv")
+DEFAULT_TRAINING_DATA = os.path.join(SCRIPT_WD, "../res/training_data_gy33_v2.csv")
 SUPPORTED_MODELS = {
-    'regression': ['regression', 'reg'],
+    'linear_regression': ['regression', 'reg'],
     'mlp_regressor': ['mlp_regressor', 'mlp'],
-    'auto_encoder': ['auto_encoder', 'ae']
+    'poly_regression': ['poly', 'poly_reg']
 }
 
 def main():
@@ -78,13 +78,13 @@ def main():
     output_filepath = os.path.join(args.output,
                                    'model_{}.json'.format(datetime.now().strftime("%m%d_%H%M")))
     #
-    if args.model in SUPPORTED_MODELS['regression']:
+    if args.model in SUPPORTED_MODELS['linear_regression']:
         rm = RegressionModel(df, {'log_level': log_level})
-        rm.train(hyperp)
+        rm.train(hyper_params=hyperp)
         rm.dump_model(output_filepath)
     elif args.model in SUPPORTED_MODELS['mlp_regressor']:
         mlp = MLPModel(df, {'log_level': log_level})
-        mlp.train(hyperp)
+        mlp.train(hyper_params=hyperp)
         mlp.dump_model(output_filepath)
     else:
         raise NotImplementedError('Model "{}" are currently not supported.'.format(args.model))
