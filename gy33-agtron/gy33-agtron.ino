@@ -55,8 +55,9 @@ Adafruit_SSD1306 display(0);  // GPIO 0
 #endif
 
 
-short DISPLAY_MODE = 0;		// 0 = Agtron + Name
-				// 1 = rr / rg / rb / rc / Agtron
+// 0 = Agtron + Name
+// 1 = rr / rg / rb / rc / Agtron
+short DISPLAY_MODE = 0;
 
 double fract(double x)
 {
@@ -82,8 +83,6 @@ double tanh(double x)
 }
 
 bool calibrated = false;
-
-// Model: 3 x 10 x 5 x 3 x 1
 
 void flushSerial() {
   Serial.flush();
@@ -121,6 +120,27 @@ void disableAutoReading() {
   Serial.write(cmd, 3);
 }
 
+void rgb2hsv(double r, double g, double b, double* hsv)
+{
+  r = r / 255.0;
+  g = g / 255.0;
+  b = b / 255.0;
+  double s = step(b, g);
+  double px = mix(b, g, s);
+  double py = mix(g, b, s);
+  double pz = mix(-1.0, 0.0, s);
+  double pw = mix(0.6666666, -0.3333333, s);
+  s = step(px, r);
+  double qx = mix(px, r, s);
+  double qz = mix(pw, pz, s);
+  double qw = mix(r, px, s);
+  double d = qx - min(qw, py);
+  hsv[0] = qz + (qw - py) / (6.0 * d + 1e-10);
+  if (hsv[0] < 0) hsv[0] = -hsv[0];
+  hsv[1] = d / (qx + 1e-10);
+  hsv[2] = qx;
+}
+
 
 // read rr, rg, rb, rc
 int readTCS34725(unsigned int *r, unsigned int *g, unsigned int *b, unsigned int *c) {
@@ -128,6 +148,15 @@ int readTCS34725(unsigned int *r, unsigned int *g, unsigned int *b, unsigned int
   byte buf[13];
   byte crc = 0;
   int i;
+
+  // Test: result should be close to 96.1
+  /*
+    r = 95;
+    g = 113;
+    b = 97;
+    c = 330;
+    return 0;
+  */
 
   for (i = 10; i > 0; i--) {
     memset(buf, 0, 13);
@@ -161,14 +190,11 @@ int readTCS34725(unsigned int *r, unsigned int *g, unsigned int *b, unsigned int
 
 #ifdef LINEAR_REGRESSION
 double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned int rc) {
-  double r = rr / 127.0;
-  double g = rg / 127.0;
-  double b = rb / 127.0;
-  double c = rc / 511.0;
-  double t;
+  double hsvc[4];
+  rgb2hsv(rr, rg, rb, hsvc);
+  hsvc[3] = rc / 511.0;
 
-  t = 128.0 * (r * X_R + g * X_G + b * X_B + c * X_C + BIAS);
-  return t;
+  return 128.0 * (hsvc[0] * X_R + hsvc[1] * X_G + hsvc[2] * X_B + hsvc[3] * X_C + BIAS);
 }
 #endif  // LINEAR_REGRESSION
 
@@ -181,26 +207,24 @@ void matrix_tanh(int n, mtx_type *mtx) {
 }
 
 double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned int rc) {
-  mtx_type rgbc[4];
+  mtx_type hsvc[4];
   mtx_type c0[MAX_DIM];
   mtx_type c1[MAX_DIM];
   double pred;
 
-  rgbc[0] = rr / 127.0;
-  rgbc[1] = rg / 127.0;
-  rgbc[2] = rb / 127.0;
-  rgbc[3] = rc / 511.0;
-  Matrix.Multiply((mtx_type*)rgbc, (mtx_type*)X0, 1, 4,                           sizeof(W0)/sizeof(mtx_type), (mtx_type*)c0);
-  Matrix.Add((mtx_type*)c0,        (mtx_type*)W0, 1,                              sizeof(W0)/sizeof(mtx_type), (mtx_type*)c1);
-  matrix_tanh(sizeof(W0)/sizeof(mtx_type), (mtx_type*)c1);
-  Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X1, 1, sizeof(W0)/sizeof(mtx_type), sizeof(W1)/sizeof(mtx_type), (mtx_type*)c0);
-  Matrix.Add((mtx_type*)c0,        (mtx_type*)W1, 1,                              sizeof(W1)/sizeof(mtx_type), (mtx_type*)c1);
-  matrix_tanh(sizeof(W1)/sizeof(mtx_type), (mtx_type*)c1);
-  Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X2, 1, sizeof(W1)/sizeof(mtx_type), sizeof(W2)/sizeof(mtx_type), (mtx_type*)c0);
-  Matrix.Add((mtx_type*)c0,        (mtx_type*)W2, 1,                              sizeof(W2)/sizeof(mtx_type), (mtx_type*)c1);
-  matrix_tanh(sizeof(W2)/sizeof(mtx_type), (mtx_type*)c1);
-  Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X3, 1, sizeof(W2)/sizeof(mtx_type), sizeof(W3)/sizeof(mtx_type), (mtx_type*)c0);
-  Matrix.Add((mtx_type*)c0,        (mtx_type*)W3, 1,                              sizeof(W3)/sizeof(mtx_type), (mtx_type*)c1);
+  rgb2hsv(rr, rg, rb, hsvc);
+  hsvc[3] = rc / 511.0;
+  Matrix.Multiply((mtx_type*)hsvc, (mtx_type*)X0, 1, 4,                             sizeof(W0) / sizeof(mtx_type), (mtx_type*)c0);
+  Matrix.Add((mtx_type*)c0,        (mtx_type*)W0, 1,                                sizeof(W0) / sizeof(mtx_type), (mtx_type*)c1);
+  matrix_tanh(sizeof(W0) / sizeof(mtx_type), (mtx_type*)c1);
+  Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X1, 1, sizeof(W0) / sizeof(mtx_type), sizeof(W1) / sizeof(mtx_type), (mtx_type*)c0);
+  Matrix.Add((mtx_type*)c0,        (mtx_type*)W1, 1,                                sizeof(W1) / sizeof(mtx_type), (mtx_type*)c1);
+  matrix_tanh(sizeof(W1) / sizeof(mtx_type), (mtx_type*)c1);
+  Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X2, 1, sizeof(W1) / sizeof(mtx_type), sizeof(W2) / sizeof(mtx_type), (mtx_type*)c0);
+  Matrix.Add((mtx_type*)c0,        (mtx_type*)W2, 1,                                sizeof(W2) / sizeof(mtx_type), (mtx_type*)c1);
+  matrix_tanh(sizeof(W2) / sizeof(mtx_type), (mtx_type*)c1);
+  Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X3, 1, sizeof(W2) / sizeof(mtx_type), sizeof(W3) / sizeof(mtx_type), (mtx_type*)c0);
+  Matrix.Add((mtx_type*)c0,        (mtx_type*)W3, 1,                                sizeof(W3) / sizeof(mtx_type), (mtx_type*)c1);
   pred = 128.0 * c1[0];
   return pred;
 }
