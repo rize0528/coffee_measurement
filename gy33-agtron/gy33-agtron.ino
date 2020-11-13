@@ -38,8 +38,6 @@
 #include <math.h>
 
 
-
-
 #ifdef ARDUINO_AVR_NANO
 #include "SSD1306Ascii.h"
 #include "SSD1306AsciiAvrI2c.h"
@@ -56,7 +54,9 @@ Adafruit_SSD1306 display(0);  // GPIO 0
 // #endif
 #endif
 
-double offset = -28.559567914690287;
+
+short DISPLAY_MODE = 0;		// 0 = Agtron + Name
+				// 1 = rr / rg / rb / rc / Agtron
 
 double fract(double x)
 {
@@ -173,8 +173,7 @@ double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned in
 #endif  // LINEAR_REGRESSION
 
 #ifdef MLP		// Now 4 -> 40 -> 10 -> 1
-void matrix_tanh(int n, mtx_type *mtx)
-{
+void matrix_tanh(int n, mtx_type *mtx) {
   int i;
   for (i = 0; i < n; i++) {
     mtx[i] = (mtx_type) tanh((double)mtx[i]);
@@ -183,32 +182,26 @@ void matrix_tanh(int n, mtx_type *mtx)
 
 double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned int rc) {
   mtx_type rgbc[4];
-  mtx_type c0[40];
-  mtx_type c1[40];
-  mtx_type c2[10];
-  mtx_type c3[10];
-  mtx_type c4[1];
-  mtx_type c5[1];
+  mtx_type c0[MAX_DIM];
+  mtx_type c1[MAX_DIM];
   double pred;
 
-  rgbc[0] = rr;
-  rgbc[1] = rg;
-  rgbc[2] = rb;
-  rgbc[3] = rc;
-  // Matrix.Print(rgbc, 1, 4, "rgbc");
-  Matrix.Multiply((mtx_type*)rgbc, (mtx_type*)X0, 1, 4, 40, (mtx_type*)c0);
-  Matrix.Add((mtx_type*)c0, (mtx_type*)W0, 1, 40, (mtx_type*)c1);
-  matrix_tanh(40, (mtx_type*)c1);
-  // Matrix.Print(c1, 1, 40, "c1");
-  Matrix.Multiply((mtx_type*)c1, (mtx_type*)X1, 1, 40, 10, (mtx_type*)c2);
-  Matrix.Add((mtx_type*)c2, (mtx_type*)W1, 1, 10, (mtx_type*)c3);
-  matrix_tanh(10, (mtx_type*)c3);
-  // Matrix.Print(c3, 1, 10, "c3");
-  Matrix.Multiply((mtx_type*)c3, (mtx_type*)X2, 1, 10, 1, (mtx_type*)c4);
-  Matrix.Add((mtx_type*)c4, (mtx_type*)W2, 1, 1, (mtx_type*)c5);
-  matrix_tanh(1, (mtx_type*)c5);
-  // Matrix.Print(c5, 1, 1, "c5");
-  pred = 128.0 * c5[0];
+  rgbc[0] = rr / 127.0;
+  rgbc[1] = rg / 127.0;
+  rgbc[2] = rb / 127.0;
+  rgbc[3] = rc / 511.0;
+  Matrix.Multiply((mtx_type*)rgbc, (mtx_type*)X0, 1, 4,                           sizeof(W0)/sizeof(mtx_type), (mtx_type*)c0);
+  Matrix.Add((mtx_type*)c0,        (mtx_type*)W0, 1,                              sizeof(W0)/sizeof(mtx_type), (mtx_type*)c1);
+  matrix_tanh(sizeof(W0)/sizeof(mtx_type), (mtx_type*)c1);
+  Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X1, 1, sizeof(W0)/sizeof(mtx_type), sizeof(W1)/sizeof(mtx_type), (mtx_type*)c0);
+  Matrix.Add((mtx_type*)c0,        (mtx_type*)W1, 1,                              sizeof(W1)/sizeof(mtx_type), (mtx_type*)c1);
+  matrix_tanh(sizeof(W1)/sizeof(mtx_type), (mtx_type*)c1);
+  Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X2, 1, sizeof(W1)/sizeof(mtx_type), sizeof(W2)/sizeof(mtx_type), (mtx_type*)c0);
+  Matrix.Add((mtx_type*)c0,        (mtx_type*)W2, 1,                              sizeof(W2)/sizeof(mtx_type), (mtx_type*)c1);
+  matrix_tanh(sizeof(W2)/sizeof(mtx_type), (mtx_type*)c1);
+  Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X3, 1, sizeof(W2)/sizeof(mtx_type), sizeof(W3)/sizeof(mtx_type), (mtx_type*)c0);
+  Matrix.Add((mtx_type*)c0,        (mtx_type*)W3, 1,                              sizeof(W3)/sizeof(mtx_type), (mtx_type*)c1);
+  pred = 128.0 * c1[0];
   return pred;
 }
 #endif  // MLP
