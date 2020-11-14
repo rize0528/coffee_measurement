@@ -4,6 +4,7 @@
 
 import json
 import sys
+from itertools import combinations_with_replacement
 
 if len(sys.argv) < 2:
     print('Usage: python3 gen-param-h.py model.json > param.h')
@@ -45,12 +46,20 @@ elif model['model_name'] == 'MLP':
     print('#endif	// GY33_PARAM_H')
 elif model['model_name'] == 'polynomial_regression':
     print('''
-    #ifndef GY33_PARAM_H
-    #define POLYNOMIAL_REGRESSION 1
-    #define POLYNOMIAL_DEGREE {}
-    '''.format(model['poly_degree']))
-    for i, olc_param in enumerate(model['ols_params']):
-        print("#define X_FEA{:02d} {}".format(i, olc_param))
-    # TODO finalize this part
+#ifndef GY33_PARAM_H
+#define POLYNOMIAL_REGRESSION 1
+double ols_params[{}] = {{ {} }};
+'''.format(len(model['ols_params']), ', '.join(map(str, model['ols_params']))))
+    print('#define CALC_POLYNOMIAL (1 * ols_params[0]) + \\')
+    noms = []
+    for x in range(4):
+        noms.append('hsvc[{}]'.format(x))
+    i = 1
+    for deg in range(1, model['poly_degree'] + 1):
+        for nominal in combinations_with_replacement(noms, deg):
+            print('    ({} * ols_params[{}]) + \\'.format(' * '.join(nominal), i))
+            i += 1
+    print('    0')
+    print('#endif	// GY33_PARAM_H')
 else:
     print('Unsupported model: {}'.format(model['model_name']))
