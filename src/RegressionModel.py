@@ -23,7 +23,8 @@ class RegressionModel(CoffeeMeasureCore):
         return {'model_name': self.model_name,
                 'reg_coef': self.model.coef_.tolist(),
                 'reg_intercept': self.model.intercept_.tolist(),
-                'note': 'y = (X * reg_coef + reg_intercept)*128; where r,g,b/=127, rc/=511'}
+                'reconstruct': 'y = (dot(X, reg_coef) + reg_intercept) * 128',
+                'note': 'The linear regression model to describe a distribution with a linear function.'}
 
     def __evaluate__(self, eval_data_frame):
         if self.model is None:

@@ -29,7 +29,7 @@ elif model['model_name'] == 'MLP':
 #define MLP 1
 #include <MatrixMath.h>
 ''')
-    wx = model['reg_coef']
+    wx = model['mlp_weights']
     for i in range(len(wx)):
         x, y = len(wx[i]), len(wx[i][0])
         max_dim = max(max_dim, max(x, y))
@@ -37,11 +37,20 @@ elif model['model_name'] == 'MLP':
         for j in range(x):
             print('{%s},' % repr(wx[i][j])[1:-1])
         print('};')
-    wx = model['reg_intercept']
+    wx = model['mlp_bias']
     for i in range(len(wx)):
         x = len(wx[i])
         print('mtx_type W{}[{}] = {{{}}};'.format(i, x, repr(wx[i])[1:-1]))
     print('#define MAX_DIM {}'.format(max_dim))
     print('#endif	// GY33_PARAM_H')
+elif model['model_name'] == 'polynomial_regression':
+    print('''
+    #ifndef GY33_PARAM_H
+    #define POLYNOMIAL_REGRESSION 1
+    #define POLYNOMIAL_DEGREE {}
+    '''.format(model['poly_degree']))
+    for i, olc_param in enumerate(model['ols_params']):
+        print("#define X_FEA{:02d} {}".format(i, olc_param))
+    # TODO finalize this part
 else:
     print('Unsupported model: {}'.format(model['model_name']))

@@ -20,10 +20,18 @@ class MLPModel(CoffeeMeasureCore):
         if self.model is None:
             self.log.error("Model not available, have you train it?")
             return {}
-        return {'model_name': self.model_name,
-                'reg_coef': self.numpy_array_flattener(self.model.coefs_),
-                'reg_intercept': self.numpy_array_flattener(self.model.intercepts_),
-                'note': 'y = ( Σ((X * mlp_coef[i]) + mlp_intercept[i]))*128; where r,g,b/=127, rc/=511'}
+        return {
+                    'model_name': self.model_name,
+                    'mlp_weights': self.numpy_array_flattener(self.model.coefs_),
+                    'mlp_bias': self.numpy_array_flattener(self.model.intercepts_),
+                    'reconstruct': 'y(i+1) = tanh(dot(y(i), mlp_weights(i)) + mlp_bias(i), where i is in {1 to L-1} '
+                                   ', y0 is X and L is the number of layers of MLP model (including input and output '
+                                   'layers). y(L) = dot(y(L-1), mlp_weight(L-1)) + mlp_bias(L-1), y(L) is the MLP '
+                                   'prediction value.',
+                    'note': 'Since the memory size of arduino are quite small, too much layers or neurons would lead '
+                            'arduino popup failures during run-time. So we suggest the total number of parameter should'
+                            ' lower than 250.'
+               }
 
     def __evaluate__(self, eval_data_frame):
         if self.model is None:

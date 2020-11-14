@@ -7,6 +7,7 @@ from itertools import chain
 from datetime import datetime
 from RegressionModel import *
 from MLPModel import *
+from PolynomialRegressionModel import *
 
 SCRIPT_WD = os.path.dirname(os.path.realpath(__file__))
 DEFAULT_TRAINING_DATA = os.path.join(SCRIPT_WD, "../res/training_data_gy33_v2.csv")
@@ -77,7 +78,7 @@ def main():
     df = pd.concat(loaded_df, axis=0)
     output_filepath = os.path.join(args.output,
                                    'model_{}.json'.format(datetime.now().strftime("%m%d_%H%M")))
-    #
+    # Not using for-loop to preserve the flexibility on processing each model.
     if args.model in SUPPORTED_MODELS['linear_regression']:
         rm = RegressionModel(df, {'log_level': log_level})
         rm.train(hyper_params=hyperp)
@@ -86,6 +87,11 @@ def main():
         mlp = MLPModel(df, {'log_level': log_level})
         mlp.train(hyper_params=hyperp)
         mlp.dump_model(output_filepath)
+    elif args.model in SUPPORTED_MODELS['poly_regression']:
+        pm = PolynomialRegressionModel(df, {'log_level': log_level})
+        hyperp.update({'degree': 3})
+        pm.train(hyper_params=hyperp)
+        pm.dump_model(output_filepath)
     else:
         raise NotImplementedError('Model "{}" are currently not supported.'.format(args.model))
     return 0
