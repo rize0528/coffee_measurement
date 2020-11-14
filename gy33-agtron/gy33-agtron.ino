@@ -59,9 +59,13 @@ Adafruit_SSD1306 display(0);  // GPIO 0
 // 1 = rr / rg / rb / rc / Agtron
 short DISPLAY_MODE = 0;
 bool calibrated = false;
-int lastState = HIGH;
-int currentState;
-unsigned int pressedCycles = 0;
+enum LastAction {
+  NONE,
+  CALIBRATE_PROMPT,
+  CALIBRATE,
+  MEASURE,
+  SWITCH_DISPLAY
+} lastAction = NONE;
 
 
 double fract(double x)
@@ -320,6 +324,7 @@ void setup() {
   display.println(F("v0.1"));
   displayScreen();
 
+  lastAction = NONE;
   pinMode(GY33_SW, OUTPUT);
   pinMode(MEASURE_BTN, INPUT_PULLUP);
   pinMode(CALIBRA_BTN, INPUT_PULLUP);
@@ -329,16 +334,7 @@ void setup() {
 
 
 void loop() {
-  currentState = digitalRead(CALIBRA_BTN);
-  if (lastState == LOW && currentState == LOW) {
-    pressedCycles++;
-  }
-
-  if (calibrated == true && digitalRead(MEASURE_BTN) == LOW) {
-    measure_it();
-  } else if (pressedCycles > 2 && currentState == HIGH) {
-    calibrate();
-  } else if (pressedCycles >= 30) {  // 2 seconds
+  if (digitalRead(MEASURE_BTN) == LOW && digitalRead(CALIBRA_BTN) == LOW && lastAction != SWITCH_DISPLAY) {
     DISPLAY_MODE = 1 - DISPLAY_MODE;
     clearScreen();
     if (DISPLAY_MODE == 0) {
@@ -347,19 +343,20 @@ void loop() {
       display.println(F("Display: Raw data"));
     }
     displayScreen();
-    pressedCycles = 0;
-    delay(500);
+    lastAction = SWITCH_DISPLAY;
+  } else if (calibrated == true && digitalRead(MEASURE_BTN) == LOW) {
+    lastAction = MEASURE;
+    measure_it();
+  } else if (digitalRead(CALIBRA_BTN) == LOW) {
+    lastAction = CALIBRATE;
+    calibrate();
   }
 
-  if (currentState == HIGH)
-    pressedCycles = 0;
-
-  if (calibrated == false) {
+  if (calibrated == false && lastAction != CALIBRATE_PROMPT) {
+    lastAction = CALIBRATE_PROMPT;
     clearScreen();
     display.println(F("Please calibrate."));
     displayScreen();
-    delay(500);
   }
   delay(100);
-  lastState = currentState;
 }
