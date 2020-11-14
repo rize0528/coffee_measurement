@@ -237,6 +237,15 @@ double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned in
 }
 #endif  // MLP
 
+#ifdef POLYNOMIAL_REGRESSION
+double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned int rc) {
+  double hsvc[4];
+  rgb2hsv(rr, rg, rb, hsvc);
+  hsvc[3] = rc / 511.0;
+  return 128.0 * (CALC_POLYNOMIAL);
+}
+#endif // POLYNOMIAL_REGRESSION
+
 const __FlashStringHelper *get_agtron_label(double t) {
   if (t >= 90) return F("Extremely Light");
   if (t >= 80) return F("Very Light");
@@ -295,9 +304,12 @@ void calibrate() {
   digitalWrite(GY33_SW, LOW);
   display.println("Done.");
   displayScreen();
-  calibrated = true;
   delay(3 * 1000);      // not necessary, but user needs time to read msg.
 }
+
+
+byte buttons[] = {CALIBRA_BTN, MEASURE_BTN};
+unsigned int pressed[sizeof(buttons)];
 
 void setup() {
   Serial.begin(9600);
@@ -326,15 +338,39 @@ void setup() {
 
   lastAction = NONE;
   pinMode(GY33_SW, OUTPUT);
-  pinMode(MEASURE_BTN, INPUT_PULLUP);
-  pinMode(CALIBRA_BTN, INPUT_PULLUP);
+  for (byte i = 0; i < sizeof(buttons); i++) {
+    pinMode(buttons[i], INPUT_PULLUP);
+  }
   digitalWrite(GY33_SW, LOW);
+
+  // Run timer2 interrupt every 15 ms
+  TCCR2A = 0;
+  TCCR2B = 1 << CS22 | 1 << CS21 | 1 << CS20;
+
+  //Timer2 Overflow Interrupt Enable
+  TIMSK2 |= 1 << TOIE2;
   delay(2000);
 }
 
+SIGNAL(TIMER2_OVF_vect) {
+  check_switches();
+}
+
+void check_switches() {
+  byte i;
+
+  for (i = 0; i < sizeof(buttons); i++) {
+    if (digitalRead(buttons[i]) == LOW) {
+      pressed[i]++;
+    } else {
+      pressed[i] = 0;
+    }
+  }
+}
 
 void loop() {
-  if (digitalRead(MEASURE_BTN) == LOW && digitalRead(CALIBRA_BTN) == LOW && lastAction != SWITCH_DISPLAY) {
+  if (pressed[0] > 15 && pressed[1] > 15 && lastAction != SWITCH_DISPLAY) {
+    lastAction = SWITCH_DISPLAY;
     DISPLAY_MODE = 1 - DISPLAY_MODE;
     clearScreen();
     if (DISPLAY_MODE == 0) {
@@ -343,13 +379,23 @@ void loop() {
       display.println(F("Display: Raw data"));
     }
     displayScreen();
-    lastAction = SWITCH_DISPLAY;
-  } else if (calibrated == true && digitalRead(MEASURE_BTN) == LOW) {
+    delay(1000);
+    return;
+  }
+  if (lastAction == SWITCH_DISPLAY) {
+    pressed[0] = pressed[1] = 0;    // reset button counter
+    lastAction = NONE;
+  }
+  if (calibrated == true && pressed[0] == 0 && pressed[1] > 25) {
     lastAction = MEASURE;
     measure_it();
-  } else if (digitalRead(CALIBRA_BTN) == LOW) {
+    return;
+  }
+  if (pressed[0] > 25 && pressed[1] == 0) {
     lastAction = CALIBRATE;
     calibrate();
+    calibrated = true;
+    return;
   }
 
   if (calibrated == false && lastAction != CALIBRATE_PROMPT) {
@@ -358,5 +404,4 @@ void loop() {
     display.println(F("Please calibrate."));
     displayScreen();
   }
-  delay(100);
 }
