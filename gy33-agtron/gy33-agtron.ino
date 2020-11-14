@@ -333,7 +333,9 @@ void setup() {
   display.println(F("Trend Micro"));
   display.println(F("Maker Club"));
   display.println(F("Agtron Measurement"));
-  display.println(F("v0.1"));
+  display.println(F("v0.2"));
+  display.println(F("Loaded model:"));
+  display.println(F(MODEL_NAME));
   displayScreen();
 
   lastAction = NONE;
@@ -375,8 +377,12 @@ void loop() {
     clearScreen();
     if (DISPLAY_MODE == 0) {
       display.println(F("Display: Normal"));
+      display.println(F("Loaded model:"));
+      display.println(F(MODEL_NAME));
     } else {
       display.println(F("Display: Raw data"));
+      display.println(F("Loaded model:"));
+      display.println(F(MODEL_NAME));
     }
     displayScreen();
     delay(1000);

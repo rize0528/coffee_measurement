@@ -15,6 +15,7 @@ model = json.load(open(sys.argv[1]))
 if model['model_name'] == 'linear_regression':
     print('''
 #ifndef GY33_PARAM_H
+#define MODEL_NAME "Linear Regression"
 #define LINEAR_REGRESSION 1
 #define X_R {}
 #define X_G {}
@@ -27,6 +28,7 @@ elif model['model_name'] == 'MLP':
     max_dim = 0
     print('''
 #ifndef GY33_PARAM_H
+#define MODEL_NAME "MLP"
 #define MLP 1
 #include <MatrixMath.h>
 ''')
@@ -47,6 +49,7 @@ elif model['model_name'] == 'MLP':
 elif model['model_name'] == 'polynomial_regression':
     print('''
 #ifndef GY33_PARAM_H
+#define MODEL_NAME "Polynomial Regression"
 #define POLYNOMIAL_REGRESSION 1
 double ols_params[{}] = {{ {} }};
 '''.format(len(model['ols_params']), ', '.join(map(str, model['ols_params']))))
