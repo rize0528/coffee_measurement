@@ -4,7 +4,7 @@ MAINTAINER riz_hsu
 RUN mkdir /opt/makerclub
 RUN mkdir /opt/makerclub/output
 
-RUN pip install -U pandas scikit-learn asciichartpy
+RUN pip install -U pandas scikit-learn asciichartpy statsmodels
 
 COPY src /opt/makerclub/src
 COPY res /opt/makerclub/res
@@ -21,4 +21,14 @@ RUN cd /opt/makerclub/src
 #   |                            example:  -p {\"hidden_layer_sizes\":[10,10]}
 #   |-   -l, --log-level: choice among ["debug", "info", "warning", "error"].
 
-#ENTRYPOINT ["/usr/local/bin/python", "/opt/makerclub/src/train.py --model regression --input /opt/makerclub/res/"]
+# ENTRYPOINT ["/usr/local/bin/python", "/opt/makerclub/src/train.py", "--model", "regression", "--input", "/opt/makerclub/res/"]
+
+# Example to launch a training job in docker container::warning
+# docker run -v /Users/riz/PycharmProjects/coffee_measurement/mount_input:/opt/makerclub/res
+#            -v /Users/riz/PycharmProjects/coffee_measurement/mount_output:/opt/makerclub/output
+#            --rm poc_build
+#            /usr/local/bin/python /opt/makerclub/src/train.py
+#                  --model mlp
+#                  --input /opt/makerclub/res/
+#                  -l debug
+

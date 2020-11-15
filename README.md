@@ -7,10 +7,25 @@ To make the project able to cross-platform, all components will be ran in a dock
 for how to install docker, please refer to [Get Docker](https://docs.docker.com/get-docker/).
  
 ## Installation
-(TBA)
+Open a terminal which capable to launch docker without any problem, then input the following commands:
 
-## Train the model
-(TBA)
+```bash
+cd <download_path>/coffee_measure/
+```
+Build SDK with dockerfile
+```bash
+sudo docker build -f dockerfile -t coffee_measure .
+```
+Launch the image and get trained model.
+```bash
+sudo docker run 
+    -v <training_data_fullpath_if_have>:/opt/makerclub/res 
+    -v <output_folder_full_path>:/opt/makerclub/output 
+    --rm coffee_measure 
+    /usr/local/bin/python /opt/makerclub/src/train.py --model mlp --input /opt/makerclub/res/ -l inf
+o
+```
+
 
 
 
