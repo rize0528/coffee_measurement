@@ -27,7 +27,8 @@ sudo docker run
 
 ## Model trainer usage
 This project has three built-in machine learning models, such as "Linear regression", "Multi-layer perceptron" and
-"Polynomial regression". You can run the program inside the docker container or standalone run on your own environment with
+"Polynomial regression".  
+You can run the program inside the docker container or standalone run on your own environment with
 properly installed all necessory python packages.
 ### Package dependency
 ```bash
@@ -46,6 +47,52 @@ sudo pip install -U pandas scikit-learn asciichartpy statsmodels
   -l or --log-level {debug,info,warning,error}
   -p or --hyper-parameters, if you want to alter the hyper parameter of a ML model, passing the parameter with json-format like: -p "{\"degree\":3}" , all double quotes are required.                                
 
+```
+Once the model training has complete, program will dump the evaluation report in console with a pretty ascii chart:
+```bash
+Kernel type: polynomial_regression
+
++=======Legend=======+
+| Green: Prediction  |
+| Red: Ground Truth  |
+| Blue: Error value  |
++====================+
++===[Performance report on evaluation data]===+
+  128.00  ┼
+  120.06  ┤
+  112.11  ┤
+  104.17  ┤
+   96.23  ┤
+   88.28  ┤╭╮
+   80.34  ┤││
+   72.40  ┼╯│  ╭
+   64.45  ┤ ╰╮╭╯
+   56.51  ┤ ╰╰╯
+   48.57  ┤
+   40.62  ┤
+   32.68  ┤
+   24.74  ┤
+   16.79  ┤
+    8.85  ┤╭╮
+    0.91  ┤╯╰───
+```
+The ascii art in your prompt should be colored, you can easily compare the predict value and ground truth to evaluate the robustness of your model.
+
+We also list some basic metrics for helping you to evaluate the model, such as the maximum or minimum distance among prediction and grundtruth values.
+```
+[2020-11-16 18:51:07,114][INFO][CoffeeMeasure.py] Linear regression evaluation report:
+[2020-11-16 18:51:07,114][INFO][CoffeeMeasure.py]  |- Max error: 5.946456693912907
+[2020-11-16 18:51:07,114][INFO][CoffeeMeasure.py]  |- Min error: 0.907086610894531
+[2020-11-16 18:51:07,114][INFO][CoffeeMeasure.py]  |- Average error: 3.275590551151037
+[2020-11-16 18:51:07,114][INFO][CoffeeMeasure.py]  |- Average absolute error: 3.275590551151037
+```
+To avoid log flooding, if you interested on the detail error value of each entry in evaluation data, you can specify the log level as well
+```
+--log-level debug
+```
+Detail metrics will like:
+```
+[2020-11-16 18:51:07,114][DEBUG][CoffeeMeasure.py]  |- Loss value between ground truth and prediction: [3.72913386 5.94645669 3.22519685 0.90708661 3.62834646 2.21732284]
 ```
 
 # Hardware design
