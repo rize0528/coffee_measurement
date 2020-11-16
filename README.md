@@ -25,8 +25,28 @@ sudo docker run
     /usr/local/bin/python /opt/makerclub/src/train.py --model mlp --input /opt/makerclub/res/ -l info
 ```
 
+## Model trainer usage
+This project has three built-in machine learning models, such as "Linear regression", "Multi-layer perceptron" and
+"Polynomial regression". You can run the program inside the docker container or standalone run on your own environment with
+properly installed all necessory python packages.
+### Package dependency
+```bash
+sudo pip install -U pandas scikit-learn asciichartpy statsmodels
+```
+### Basic usage
+```bash
+  -h, --help            show this help message and exit
+  -i or --input [REQUIRED], input filepath, if a folder path has been given, program will scan all *.csv file
+                          that could be loaded as pandas dataframe. For the files which name are in form of "eval_*.csv"
+                          will be treat as evaluation data, otherwise program will use training data to show the evaluation
+                          report after model training.
+  -e or --evaluation, Evaluation data-path, accept single file only.  
+  -m or --model {regression,reg,mlp_regressor,mlp,poly,poly_reg} [REQUIRED]
+  -o or --output, output folder path
+  -l or --log-level {debug,info,warning,error}
+  -p or --hyper-parameters, if you want to alter the hyper parameter of a ML model, passing the parameter with json-format like: -p "{\"degree\":3}" , all double quotes are required.                                
 
-
+```
 
 # Hardware design
 
