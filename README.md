@@ -50,7 +50,7 @@ sudo pip install -U pandas scikit-learn asciichartpy statsmodels
 ```
 Once the model training has complete, program will dump the evaluation report in console with a pretty ascii chart:
 ```bash
-Kernel type: polynomial_regression
+Kernel type: ========MLP=========
 
 +=======Legend=======+
 | Green: Prediction  |
@@ -58,23 +58,24 @@ Kernel type: polynomial_regression
 | Blue: Error value  |
 +====================+
 +===[Performance report on evaluation data]===+
-  128.00  ┼
-  120.06  ┤
-  112.11  ┤
-  104.17  ┤
-   96.23  ┤
-   88.28  ┤╭╮
-   80.34  ┤││
-   72.40  ┼╯│  ╭
-   64.45  ┤ ╰╮╭╯
-   56.51  ┤ ╰╰╯
-   48.57  ┤
-   40.62  ┤
-   32.68  ┤
-   24.74  ┤
-   16.79  ┤
-    8.85  ┤╭╮
-    0.91  ┤╯╰───
+  128.00  ┤
+  119.57  ┼
+  111.13  ┤
+  102.70  ┼╮            ╭──╮          ╭─╮
+   94.26  ┤╮╮        ╭─╮│ ╰╰╮  ╭╮╭╮  ╭╯ ╰
+   85.83  ┤╰─╮      ╭╯ ││   ╰─╮││╭╮  │
+   77.39  ┤  ╰╮     │╯ ╰╯    ╰│││││ ╭╯
+   68.96  ┤   ╰╮    │  ╰╯     ╰╯│││╭│
+   60.52  ┤    ╰╮╭╮ │           ╰╯│╭╯
+   52.09  ┤     ╰╯│ │             ╰╯
+   43.65  ┤       ╰─╯
+   35.22  ┤        ╰╯
+   26.79  ┤
+   18.35  ┤
+    9.92  ┤        ╭─╮    ╭╮╭╮
+    1.48  ┤╮╭──────╯ ╰────╯╰╯╰───────────
+   -6.95  ┤╰╯
+
 ```
 The ascii art in your prompt should be colored, you can easily compare the predict value and ground truth to evaluate the robustness of your model.
 
