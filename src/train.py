@@ -17,11 +17,14 @@ SUPPORTED_MODELS = {
     'poly_regression': ['poly', 'poly_reg']
 }
 
+
 def main():
     """
         Supported Models:
             Linear regression: https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html?highlight=linear%20regression#sklearn.linear_model.LinearRegression
             MLP Regressor:  https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPRegressor.html?highlight=mlpregressor#sklearn.neural_network.MLPRegressor
+            Polynomial parameters: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.PolynomialFeatures.html
+            Ordinal least square model(OLS):  https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.OLS.html?highlight=ols#statsmodels.regression.linear_model.OLS
         You can find available hyper-parameter in above links.
     """
     parser = argparse.ArgumentParser()
@@ -38,8 +41,7 @@ def main():
     #
     log_level = {"debug": 10, "info": 20, "warning": 30, "error": 40}.get(args.log_level)
 
-    logging.basicConfig(level=log_level, format=
-    '[%(asctime)-15s][%(levelname)s][%(filename)s] %(message)s')
+    logging.basicConfig(level=log_level, format='[%(asctime)-15s][%(levelname)s][%(filename)s] %(message)s')
 
     try:
         hyperp = json.loads(args.hyper_parameters)
@@ -71,7 +73,7 @@ def main():
                 logging.warning(str(e))
                 _failed += 1
         logging.info('{0} file(s) were loaded.'.format(_loaded))
-        if len(eval_df)>0:
+        if len(eval_df) > 0:
             logging.info('  - including {0} evaluation file(s)')
         if _failed > 0:
             logging.info('{0} file(s) were failed to load.'.format(_failed))
