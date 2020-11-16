@@ -22,8 +22,7 @@ sudo docker run
     -v <training_data_fullpath_if_have>:/opt/makerclub/res 
     -v <output_folder_full_path>:/opt/makerclub/output 
     --rm coffee_measure 
-    /usr/local/bin/python /opt/makerclub/src/train.py --model mlp --input /opt/makerclub/res/ -l inf
-o
+    /usr/local/bin/python /opt/makerclub/src/train.py --model mlp --input /opt/makerclub/res/ -l info
 ```
 
 

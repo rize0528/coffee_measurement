@@ -1,3 +1,5 @@
+import os
+import sys
 import json
 import logging
 import numpy as np
@@ -7,6 +9,9 @@ import asciichartpy as chart
 from utils import *
 from typing import Union
 
+WD = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(WD, '../gy33-agtron'))
+param_gen = __import__("gen-param-h")
 
 class CoffeeMeasureCore:
     """
@@ -30,15 +35,23 @@ class CoffeeMeasureCore:
         _df = external_df if external_df is not None else self.data_frame
         columns = _df.columns
 
+        # Normalize raw rgb with rc.
+        for col in columns:
+            if col in ['rr', 'rg', 'rb']:
+                _df['norm_{}'.format(col)] = _df[col] / _df['rc']
+
+        # Normalize the rest channels.
         for col in columns:
             if col == 'ct':
                 _df[col] /= 8191
             elif col == 'lux':
                 _df[col] /= 31
             elif col == 'rc':
+                _df['raw_rc'] = _df[col].copy()
                 _df[col] /= 511
             elif col in self.colour_channels:
                 _df[col] /= 255
+
 
     def report(self, groundTruth: Union[np.ndarray, pd.core.frame.DataFrame],
                predicted: Union[np.ndarray, pd.core.frame.DataFrame],
@@ -72,7 +85,8 @@ class CoffeeMeasureCore:
         #
         out_chart = chart.plot(series=[_gt.tolist()[:_display], _pred.tolist()[:_display],
                                        (_pred - _gt).tolist()[:_display]], cfg=config)
-        log_msg = "\nKernel type: {:=^20}".format(self.model_name) + "\n" + legend + "\n" + out_chart
+        log_msg = "\nKernel type: {:=^20}".format(self.model_name) + "\n" + \
+                  "\n" + legend + "\n" + "+===[Performance report on evaluation data]===+" + "\n" + out_chart
         self.log.info(log_msg)
 
     def train(self, eval_df: pd.DataFrame = None,  hyper_params: dict = {}):
@@ -86,6 +100,12 @@ class CoffeeMeasureCore:
         if isinstance(array, np.ndarray):
             return array.tolist()
         return [self.numpy_array_flattener(x) for x in array]
+
+    def dump_params(self, path: str):
+        with open(path, 'w') as wp:
+            model_dict = self.__dump_model__()
+            param_gen.param_generator(model_dict, wp)
+            self.log.info('Arduino config file has been saved to: {}'.format(path))
 
     def dump_model(self, path: str):
         with open(path, 'w') as wp:

@@ -12,6 +12,8 @@ def rgb2hsv(data_frame: pd.DataFrame,
     if output_field_names is None:
         output_field_names = ['h', 's', 'v']
     #
-    _hsv_meta = list(map(lambda x: colorsys.rgb_to_hsv(x[1].rr, x[1].rg, x[1].rb),
+    _hsv_meta = list(map(lambda x: colorsys.rgb_to_hsv(x[1].get(field_names[0]),
+                                                       x[1].get(field_names[1]),
+                                                       x[1].get(field_names[2])),
                          data_frame[field_names].iterrows()))
     return pd.DataFrame(_hsv_meta, columns=output_field_names)

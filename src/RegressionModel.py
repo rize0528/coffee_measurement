@@ -5,7 +5,7 @@ from sklearn.linear_model import LinearRegression
 
 def feature_creation(data_frame):
     hsv_df = rgb2hsv(data_frame,
-                     field_names=['rr', 'rg', 'rb'],
+                     field_names=['norm_rr', 'norm_rg', 'norm_rb'],
                      output_field_names=['h', 's', 'v'])
 
     return pd.concat([data_frame.reset_index(drop=True),
