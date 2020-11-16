@@ -1,1 +1,0 @@
-{"model_name": "linear_regression", "reg_coef": [-0.19208415329393405, -1.6638310250453865, 3.603181101346528, -1.260958314869315], "reg_intercept": 0.34024224600923547, "note": "y = (X * reg_coef + reg_intercept)*128; where r,g,b/=127, rc/=511"}

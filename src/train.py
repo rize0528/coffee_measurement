@@ -95,7 +95,7 @@ def main():
         eval_df = None
 
     output_filepath = os.path.join(args.output,
-                                   'model_{}.json'.format(datetime.now().strftime("%m%d_%H%M")))
+                                   'model_{}_{}.json'.format(datetime.now().strftime("%m%d_%H%M%S"), args.model))
     output_params_path = os.path.join(args.output, 'param.h')
     # Using non-for-loop way to preserve the flexibility on processing each model.
     if args.model in SUPPORTED_MODELS['linear_regression']:
