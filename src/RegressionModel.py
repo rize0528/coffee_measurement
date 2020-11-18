@@ -12,7 +12,7 @@ def feature_creation(data_frame):
                       hsv_df.reset_index(drop=True)], axis=1)
 
 
-class RegressionModel(CoffeeMeasureCore):
+class Model(CoffeeMeasureCore):
     essentials = ['rr', 'rb', 'rg', 'rc']
     model_name = "linear_regression"
 
@@ -35,7 +35,7 @@ class RegressionModel(CoffeeMeasureCore):
         self.data_pre_processing(eval_data_frame)
         eval_data_frame = feature_creation(eval_data_frame)
         #
-        X, y = eval_data_frame[['h', 's', 'v', 'rc']].to_numpy(), \
+        X, y = eval_data_frame[['h', 's', 'v']].to_numpy(), \
                eval_data_frame['value'].to_numpy() / 127
         #
         pred = self.model.predict(X)
@@ -44,7 +44,7 @@ class RegressionModel(CoffeeMeasureCore):
     def __logic__(self, hyper_params):
         self.data_frame = feature_creation(self.data_frame)
         #
-        X, y = self.data_frame[['h', 's', 'v', 'rc']].to_numpy(), \
+        X, y = self.data_frame[['h', 's', 'v']].to_numpy(), \
                self.data_frame['value'].to_numpy() / 127
         self.model = LinearRegression(**hyper_params)
         self.model.fit(X, y)

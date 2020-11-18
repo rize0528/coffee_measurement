@@ -3,11 +3,10 @@ import json
 import logging
 import argparse
 import pandas as pd
+import importlib
 from itertools import chain
 from datetime import datetime
-from RegressionModel import *
-from MLPModel import *
-from PolynomialRegressionModel import *
+from utils import module_scanner
 
 SCRIPT_WD = os.path.dirname(os.path.realpath(__file__))
 DEFAULT_TRAINING_DATA = os.path.join(SCRIPT_WD, "../res/training_data_gy33_v2.csv")
@@ -52,6 +51,13 @@ def main():
     # Create output folder if not exist.
     os.makedirs(os.path.realpath(args.output), exist_ok=True)
 
+    # Import selected models
+    scanned_model = module_scanner(SCRIPT_WD, "Model.py")
+    models = {}
+    logging.debug('{} models found, which are: [{}]'.format(len(scanned_model), ",".join(scanned_model)))
+    for _model in scanned_model:
+        models[_model] = importlib.import_module(_model, _model)
+
     #
     loaded_df = []
     eval_df = []
@@ -74,7 +80,7 @@ def main():
                 _failed += 1
         logging.info('{0} file(s) were loaded.'.format(_loaded))
         if len(eval_df) > 0:
-            logging.info('  - including {0} evaluation file(s)')
+            logging.info('  - including {0} evaluation file(s)'.format(len(eval_df)))
         if _failed > 0:
             logging.info('{0} file(s) were failed to load.'.format(_failed))
     elif args.input.lower().endswith('.csv'):
@@ -101,17 +107,17 @@ def main():
     output_params_path = os.path.join(args.output, 'param.h')
     # Using non-for-loop way to preserve the flexibility on processing each model.
     if args.model in SUPPORTED_MODELS['linear_regression']:
-        rm = RegressionModel(df, {'log_level': log_level})
+        rm = models['RegressionModel'].Model(df, {'log_level': log_level})
         rm.train(hyper_params=hyperp, eval_df=eval_df)
         rm.dump_model(output_filepath)
         rm.dump_params(output_params_path)
     elif args.model in SUPPORTED_MODELS['mlp_regressor']:
-        mlp = MLPModel(df, {'log_level': log_level})
+        mlp = models['MLPModel'].Model(df, {'log_level': log_level})
         mlp.train(hyper_params=hyperp, eval_df=eval_df)
         mlp.dump_model(output_filepath)
         mlp.dump_params(output_params_path)
     elif args.model in SUPPORTED_MODELS['poly_regression']:
-        pm = PolynomialRegressionModel(df, {'log_level': log_level})
+        pm = models['PolynomialRegressionModel'].Model(df, {'log_level': log_level})
         hyperp.update({'degree': 3})  # Uses degree-3 to enumerate corresponding nomials.
         pm.train(hyper_params=hyperp, eval_df=eval_df)
         pm.dump_model(output_filepath)

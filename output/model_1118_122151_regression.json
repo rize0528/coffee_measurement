@@ -1,0 +1,1 @@
+{"model_name": "linear_regression", "reg_coef": [-0.7865303948265202, -2.372085861468757, 8.996459475623906], "reg_intercept": -1.620942542772527, "reconstruct": "y = (dot(X, reg_coef) + reg_intercept) * 128", "note": "The linear regression model to describe a distribution with a linear function."}

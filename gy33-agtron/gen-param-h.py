@@ -17,8 +17,7 @@ def param_generator(model, output_stream):
 #define LINEAR_REGRESSION 1
 #define X_R {}
 #define X_G {}
-#define X_B {}
-#define X_C {}\n'''.format(*model['reg_coef']))
+#define X_B {}\n'''.format(*model['reg_coef']))
         output_stream.write('#define BIAS {}\n'.format(model['reg_intercept']))
         output_stream.write('#endif	// GY33_PARAM_H\n')
     elif model['model_name'] == "MLP":
