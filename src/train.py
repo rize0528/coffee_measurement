@@ -118,8 +118,9 @@ def main():
         mlp.dump_params(output_params_path)
     elif args.model in SUPPORTED_MODELS['poly_regression']:
         pm = models['PolynomialRegressionModel'].Model(df, {'log_level': log_level})
-        hyperp.update({'degree': 3})  # Uses degree-3 to enumerate corresponding nomials.
-        pm.train(hyper_params=hyperp, eval_df=eval_df)
+        default_param = {'degree': 3}  # Uses degree-3 to enumerate corresponding nomials.
+        default_param.update(hyperp)
+        pm.train(hyper_params=default_param, eval_df=eval_df)
         pm.dump_model(output_filepath)
         pm.dump_params(output_params_path)
     else:

@@ -95,6 +95,7 @@ class CoffeeMeasureCore:
         if eval_df is None:
             self.log.info("No available evaluation data could adopt, use training data instead.")
             eval_df = self.raw_data_frame.copy()
+        self.log.debug("Given hyper-parameters: {}".format(json.dumps(hyper_params)))
         self.__logic__(hyper_params)
         self.__evaluate__(eval_df)
 
