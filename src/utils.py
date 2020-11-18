@@ -1,9 +1,11 @@
 import os
+import sys
 import logging
 import colorsys
 import importlib
 import pandas as pd
 
+sys.path.append('/opt/makerclub/src')
 
 def rgb2hsv(data_frame: pd.DataFrame,
             field_names=None,
@@ -31,8 +33,10 @@ def module_scanner(scan_path: str, scan_posfix: str) -> list:
             m = importlib.import_module(_package_name, _package_name)
             if hasattr(m, 'Model'):
                 valid_model.append(_package_name)
-        except:
-            logging.warning("Unable to load module: {}".format(_package_name))
+        except Exception as e:
+            logging.warning("Error message: {}".format(str(e)))
+            logging.warning("Unable to load module: {} from {}".format(_package_name, _model_name))
+            logging.warning(f"Given scan_path={scan_path}, scan_posfix={scan_posfix}")
     return valid_model
 
 

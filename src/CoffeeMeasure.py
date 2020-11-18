@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import logging
+import importlib
 import numpy as np
 import pandas as pd
 import pickle as pkl
@@ -12,6 +13,7 @@ from typing import Union
 WD = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(WD, '../gy33-agtron'))
 param_gen = __import__("gen-param-h")
+#param_gen = importlib.import_module("param_generator", "gen-param-h")
 
 class CoffeeMeasureCore:
     """

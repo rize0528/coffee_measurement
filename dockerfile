@@ -8,6 +8,7 @@ RUN pip install -U pandas scikit-learn asciichartpy statsmodels
 
 COPY src /opt/makerclub/src
 COPY res /opt/makerclub/res
+COPY gy33-agtron /opt/makerclub/gy33-agtron
 
 RUN cd /opt/makerclub/src
 
