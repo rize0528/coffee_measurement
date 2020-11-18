@@ -49,7 +49,7 @@ def param_generator(model, output_stream):
 double ols_params[{}] = {{ {} }};\n'''.format(len(model['ols_params']), ', '.join(map(str, model['ols_params']))))
         output_stream.write('#define CALC_POLYNOMIAL (1 * ols_params[0]) + \\\n')
         noms = []
-        for x in range(4):
+        for x in range(3):
             noms.append('hsvc[{}]'.format(x))
         i = 1
         for deg in range(1, model['poly_degree'] + 1):

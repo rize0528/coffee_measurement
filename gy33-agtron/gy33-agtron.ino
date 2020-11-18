@@ -127,11 +127,11 @@ void disableAutoReading() {
   Serial.write(cmd, 3);
 }
 
-void rgb2hsv(double r, double g, double b, double* hsv)
+void rgb2hsv(double r, double g, double b, double c, double* hsv)
 {
-  r = r / 255.0;
-  g = g / 255.0;
-  b = b / 255.0;
+  r = r / c;
+  g = g / c;
+  b = b / c;
   double s = step(b, g);
   double px = mix(b, g, s);
   double py = mix(g, b, s);
@@ -198,10 +198,9 @@ int readTCS34725(unsigned int *r, unsigned int *g, unsigned int *b, unsigned int
 #ifdef LINEAR_REGRESSION
 double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned int rc) {
   double hsvc[4];
-  rgb2hsv(rr, rg, rb, hsvc);
-  hsvc[3] = rc / 511.0;
+  rgb2hsv(rr, rg, rb, rc, hsvc);
 
-  return 128.0 * (hsvc[0] * X_R + hsvc[1] * X_G + hsvc[2] * X_B + hsvc[3] * X_C + BIAS);
+  return 128.0 * (hsvc[0] * X_R + hsvc[1] * X_G + hsvc[2] * X_B + BIAS);
 }
 #endif  // LINEAR_REGRESSION
 
@@ -214,14 +213,13 @@ void matrix_tanh(int n, mtx_type *mtx) {
 }
 
 double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned int rc) {
-  mtx_type hsvc[4];
+  mtx_type hsvc[3];
   mtx_type c0[MAX_DIM];
   mtx_type c1[MAX_DIM];
   double pred;
 
-  rgb2hsv(rr, rg, rb, hsvc);
-  hsvc[3] = rc / 511.0;
-  Matrix.Multiply((mtx_type*)hsvc, (mtx_type*)X0, 1, 4,                             sizeof(W0) / sizeof(mtx_type), (mtx_type*)c0);
+  rgb2hsv(rr, rg, rb, rc, hsvc);
+  Matrix.Multiply((mtx_type*)hsvc, (mtx_type*)X0, 1, 3,                             sizeof(W0) / sizeof(mtx_type), (mtx_type*)c0);
   Matrix.Add((mtx_type*)c0,        (mtx_type*)W0, 1,                                sizeof(W0) / sizeof(mtx_type), (mtx_type*)c1);
   matrix_tanh(sizeof(W0) / sizeof(mtx_type), (mtx_type*)c1);
   Matrix.Multiply((mtx_type*)c1,   (mtx_type*)X1, 1, sizeof(W0) / sizeof(mtx_type), sizeof(W1) / sizeof(mtx_type), (mtx_type*)c0);
@@ -240,8 +238,7 @@ double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned in
 #ifdef POLYNOMIAL_REGRESSION
 double calcAgtron(unsigned int rr, unsigned int rg, unsigned int rb, unsigned int rc) {
   double hsvc[4];
-  rgb2hsv(rr, rg, rb, hsvc);
-  hsvc[3] = rc / 511.0;
+  rgb2hsv(rr, rg, rb, rc, hsvc);
   return 128.0 * (CALC_POLYNOMIAL);
 }
 #endif // POLYNOMIAL_REGRESSION
