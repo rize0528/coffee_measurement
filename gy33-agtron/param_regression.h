@@ -1,0 +1,9 @@
+
+#ifndef GY33_PARAM_H
+#define MODEL_NAME "Linear Regression"
+#define LINEAR_REGRESSION 1
+#define X_R -0.4051870147619667
+#define X_G -1.7982246423084958
+#define X_B 2.2557206278426567
+#define BIAS 0.41449957480562893
+#endif	// GY33_PARAM_H

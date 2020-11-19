@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 # Convert weights JSON to C
-# Generates param.h
+# Generates param_mlp.h
 
 import os
 import sys
@@ -63,7 +63,7 @@ double ols_params[{}] = {{ {} }};\n'''.format(len(model['ols_params']), ', '.joi
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Usage: python3 gen-param-h.py model.json > param.h')
+    parser = argparse.ArgumentParser(description='Usage: python3 gen-param-h.py model.json > param_mlp.h')
     parser.add_argument("file", help='model json file path')
     args = parser.parse_args()
 
