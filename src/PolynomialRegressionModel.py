@@ -37,6 +37,9 @@ class Model(CoffeeMeasureCore):
                             'observation value y.'
                }
 
+    def __wrap__(self, array):
+        return self.poly_model.transform(array)
+
     def __evaluate__(self, eval_data_frame):
         if self.model is None:
             self.log.error('Please train the model before you proceeding.')

@@ -26,6 +26,9 @@ class Model(CoffeeMeasureCore):
                 'reconstruct': 'y = (dot(X, reg_coef) + reg_intercept) * 128',
                 'note': 'The linear regression model to describe a distribution with a linear function.'}
 
+    def __wrap__(self, array):
+        return array
+
     def __evaluate__(self, eval_data_frame):
         if self.model is None:
             self.log.error('Please train the model before you proceeding.')
@@ -39,6 +42,7 @@ class Model(CoffeeMeasureCore):
                eval_data_frame['value'].to_numpy() / 127
         #
         pred = self.model.predict(X)
+        print(self.report_string(groundTruth=y, predicted=pred))
         self.report(groundTruth=y, predicted=pred)
 
     def __logic__(self, hyper_params):

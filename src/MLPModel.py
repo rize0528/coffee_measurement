@@ -33,6 +33,9 @@ class Model(CoffeeMeasureCore):
                             ' lower than 250.'
                }
 
+    def __wrap__(self, array):
+        return array
+
     def __evaluate__(self, eval_data_frame):
         if self.model is None:
             self.log.error('Please train the model before you proceeding.')

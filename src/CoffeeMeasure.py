@@ -9,11 +9,21 @@ import pickle as pkl
 import asciichartpy as chart
 from utils import *
 from typing import Union
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 WD = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(WD, '../gy33-agtron'))
 param_gen = __import__("gen-param-h")
 #param_gen = importlib.import_module("param_generator", "gen-param-h")
+
+def feature_creation(data_frame):
+    hsv_df = rgb2hsv(data_frame,
+                     field_names=['norm_rr', 'norm_rg', 'norm_rb'],
+                     output_field_names=['h', 's', 'v'])
+
+    return pd.concat([data_frame.reset_index(drop=True),
+                      hsv_df.reset_index(drop=True)], axis=1)
+
 
 class CoffeeMeasureCore:
     """
@@ -54,6 +64,38 @@ class CoffeeMeasureCore:
             elif col in self.colour_channels:
                 _df[col] /= 255
 
+    def report_string(self, groundTruth: Union[np.ndarray, pd.core.frame.DataFrame],
+               predicted: Union[np.ndarray, pd.core.frame.DataFrame],
+               ascii_chart_config: dict = {}):
+        _pred = predicted.copy() * 128
+        _gt = groundTruth.copy() * 128
+        error = (predicted - groundTruth) * 128
+        #
+        report_string = '''
+        Evaluation report:
+           |- Error values = Max:{0:.4f}, Min:{1:.4f}
+           |- Median error value = {2:.4f}
+           |- Standard deviation = {3:.4f}
+           |- Loss score (MSE) = {4:.4f}
+           |-            (MAE) = {5:.4f}
+        '''.format(np.max(error),
+                   np.min(error),
+                   np.median(error),
+                   np.std(error),
+                   mean_squared_error(_gt, _pred),
+                   mean_absolute_error(_gt, _pred))
+        config = {
+            'height': 15,
+            'display_width': 100
+        }
+        _display = config['display_width']
+
+        out_chart = chart.plot(series=[(_gt - _pred).tolist()[:_display]], cfg=config)
+        table_width = np.max(list(map(lambda x: len(x), out_chart.split('\n'))))
+
+        report_string = report_string + "\n" + "="*table_width + "\n" + out_chart + "\n" + "="*table_width
+
+        return report_string
 
     def report(self, groundTruth: Union[np.ndarray, pd.core.frame.DataFrame],
                predicted: Union[np.ndarray, pd.core.frame.DataFrame],
@@ -62,7 +104,7 @@ class CoffeeMeasureCore:
         _gt = groundTruth.copy() * 128
         error = (predicted - groundTruth) * 128
 
-        self.log.info('Linear regression evaluation report:')
+        self.log.info('Evaluation report:')
         self.log.info(' |- Max error: {}'.format(np.max(error)))
         self.log.info(' |- Min error: {}'.format(np.min(error)))
         self.log.info(' |- Average error: {}'.format(np.mean(error)))
@@ -91,13 +133,24 @@ class CoffeeMeasureCore:
                   "\n" + legend + "\n" + "+===[Performance report on evaluation data]===+" + "\n" + out_chart
         self.log.info(log_msg)
 
-    def train(self, eval_df: pd.DataFrame = None,  hyper_params: dict = {}):
+    def train(self, eval_df: pd.DataFrame = None,  hyper_params: dict = {}, apply_evaluation = True):
         if eval_df is None:
             self.log.info("No available evaluation data could adopt, use training data instead.")
             eval_df = self.raw_data_frame.copy()
         self.log.debug("Given hyper-parameters: {}".format(json.dumps(hyper_params)))
         self.__logic__(hyper_params)
-        self.__evaluate__(eval_df)
+        if apply_evaluation:
+            self.__evaluate__(eval_df)
+
+    def predict(self, pred_df: pd.DataFrame):
+        op_df = pred_df.copy()
+        self.check_essential_params(op_df)
+        self.data_pre_processing(op_df)
+        op_df = feature_creation(op_df)
+        X, y = op_df[['h', 's', 'v']].to_numpy(), \
+               op_df['value'].to_numpy() / 127
+        Xp = self.__wrap__(X)
+        return self.model.predict(Xp), y
 
     def numpy_array_flattener(self, array: Union[list, np.ndarray]):
         if isinstance(array, np.ndarray):
@@ -119,7 +172,7 @@ class CoffeeMeasureCore:
     def __init__(self, log_level: int = logging.INFO):
         #
         self.raw_data_frame = self.data_frame.copy()
-        self.base_essentials = ['value', 'label']
+        self.base_essentials = ['value']
         log_format = '[%(asctime)-15s][%(levelname)s][%(filename)s] %(message)s'
         logging.basicConfig(level=log_level, format=log_format)
         self.log = logging.getLogger()
