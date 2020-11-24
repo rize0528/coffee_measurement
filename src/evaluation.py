@@ -129,15 +129,16 @@ def main():
     subjects = len(reports.keys())
 
     for idx, target_df in enumerate(loaded_df):
+        _name = loaded_name[idx]
         name = _name.split('.')[0].replace("gt_event_", "")
-        output_filepath = os.path.join(args.output, name,
-                                       'report_{}_{}.md'.format(name,
-                                                                args.model))
-        os.makedirs(os.path.join(args.output, name), exist_ok=True)
+        save_folder = f"{name}_{args.model}"
+        output_filepath = os.path.join(args.output, save_folder,
+                                       'report_{}.md'.format(name))
+        os.makedirs(os.path.join(args.output, save_folder), exist_ok=True)
         _report = reports[name]
         data_size = target_df.shape[0]
         total = 35
-        overall_score = (1 - _report['D_mad'] / np.sum(Scores)) * 40 + 60
+        overall_score = (1 - _report['D_mad'] / np.sum(Scores)) * 100
 
         # Ascii Chart config
         config = {
@@ -156,32 +157,65 @@ def main():
         rank = Scores.index(_report['D_mad']) + 1
         amad_rank = All_a_mad.index(_report['A_mad']) + 1
 
+        # Polar
+        polar_data = data_size/total
+        polar_correct = 1 - np.mean(np.abs(_report['P_error']))/np.max([np.mean(np.abs(_['P_error'])) for _ in reports.values()])
+        polar_robust = np.max(np.abs(_report['A_error'] - _report['P_error']))/max([np.max(np.abs(_['A_error'] - _['P_error'])) for _ in reports.values()])
+
+        _fig = go.Figure(data=[go.Scatterpolar(name="整合戰鬥力", r=[polar_data, polar_correct, polar_robust],
+                                               theta=["資料力", "正確性", "汎用性"], fill='toself')])
+        rad_cfg = dict(range=[0, 1], showticklabels=False, ticks='')
+        _fig.update_layout(title="戰鬥力", width=250, height=250, margin={'l':10, 'r':50, 'b':10, 't':40, 'pad':0},
+                           polar=dict(radialaxis=rad_cfg))
+        _fig.to_image(format="png", engine="kaleido")
+        _figPath = os.path.join(args.output, save_folder, '000.png')
+        _fig.write_image(_figPath)
+
+
         with open(output_filepath, 'w') as wp:
-            wp.write(f"# MakerClub 咖啡粉偵測儀活動成績單\n")
-            wp.write("* 活動時間: 2020/11/18\n")
-            wp.write(f"* 參加人名稱: **{name.capitalize()}**\n")
-            wp.write(f"* 模型名稱: **{args.model}**\n")
+            wp.write(f"# MakerClub 咖啡粉偵測儀活動成績單 \n")
+            info = f"活動時間: 2020/11/18<br>參加人名稱: **{name.capitalize()}**<br>模型名稱: **{args.model}**"
+            wp.write(f"| {info} | ![](000.png) |\n")
+            wp.write("|-----:|-------------:|\n")
             wp.write("## 資料能力：\n")
-            wp.write(f"> 資料分數:{overall_score}\n> 排名:{rank}/{total} (*1)\n")
+            wp.write(f"> 資料分數:{overall_score:.2f}\n")
+            wp.write(">\n")
+            wp.write(f"> 排名:{rank}/{total} (*1)\n")
             wp.write("### 貢獻訓練資料量:\n")
             wp.write("> \t[{0}{1}]-({2}/{3})\n".format('★' * data_size, '☆' * (total - data_size), data_size, total))
             wp.write("### 資料對模型的乖離排名:\n")
             wp.write("> \t[{0}{1}]-({2}/{3}) (*2)\n".format('★' * amad_rank, '☆' * (subjects - amad_rank), amad_rank, subjects))
+            wp.write(">\n")
+            wp.write("> \t平均誤差值: {:.3f}\n".format(np.mean(_report['P_error'])))
+            wp.write(">\n")
+            wp.write("> \t誤差值標準差: {:.3f}\n".format(np.std(_report['P_error'])))
+            wp.write(">\n")
+            wp.write("> \t誤差值全體學員平均標準差: {:.3f}\n".format(np.mean([np.std(x['P_error']) for x in reports.values()])))
             wp.write("### 模型誤差圖(*3):\n")
             _fig = go.Figure(data=[go.Scatter(y=_report['A_error'])])
             _fig.update_layout(title="Model-All v.s. 你的資料", **plotly_cfg)
             _fig.to_image(format="png", engine="kaleido")
-            _figPath = os.path.join(args.output, name, '001.png')
+            _figPath = os.path.join(args.output, save_folder, '001.png')
             _fig.write_image(_figPath)
             wp.write("> ![001](001.png)\t")
             _fig = go.Figure(data=[go.Scatter(y=_report['P_error'])])
             _fig.update_layout(title="Model-User v.s. 你的資料", **plotly_cfg)
             _fig.to_image(format="png", engine="kaleido")
-            _figPath = os.path.join(args.output, name, '002.png')
+            _figPath = os.path.join(args.output, save_folder, '002.png')
             _fig.write_image(_figPath)
             wp.write("|![002](002.png)\n")
-            #_chart2 = asciichartpy.plot(series=[_report['P_error'].tolist()], cfg=config)
-            #wp.write("{}\n".format(_chart2))
+            wp.write("### 模型能力差異\n")
+            _fig = go.Figure(data=[go.Scatter(y=_report['A_error'], error_y=dict(type='data',
+                                                                                 array=_report['P_error']-_report['A_error'],
+                                                                                 visible=True))])
+            _fig.update_layout(title="Model-All v.s. Model-User 差異", height=200, margin={'l':5, 'r':5, 'b':5, 't':40, 'pad':0})
+            _fig.to_image(format="png", engine="kaleido")
+            _figPath = os.path.join(args.output, save_folder, '003.png')
+            _fig.write_image(_figPath)
+            wp.write("> ![003](003.png)\n")
+
+            wp.write("### 量測資料\n")
+            wp.write(target_df.drop(columns=['Unnamed: 0']).to_markdown()+'\n')
 
             wp.write("## 附錄\n")
             wp.write("* 模型評估說明：\n")
@@ -193,8 +227,6 @@ def main():
             wp.write("(*3) : 誤差值是模型對於你的資料所預測出來的數值與CM-100所測得的誤差。\n")
             wp.write("```\n")
         # Build
-
-        break
 
     return 0
 
